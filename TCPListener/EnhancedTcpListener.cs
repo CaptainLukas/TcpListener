@@ -16,9 +16,10 @@ namespace TCPListener
         private int port;
 
         private Byte[] buffer;
-        Thread worker;
+        private Thread worker;
 
-        TcpListener listener;
+        private TcpListener listener;
+        private TcpClient client;
 
         public int Port
         {
@@ -53,14 +54,27 @@ namespace TCPListener
 
         public void StopListening()
         {
-            while(this.worker.IsAlive)
+            if (this.client != null)
             {
+                
+                this.client.Close();
+            }
+
+            if (this.listener != null)
+            {
+                this.listener.Stop();
+            }
+
+            if (this.worker.IsAlive)
+            {
+                
                 try
                 {
                     this.worker.Abort();
                 }
                 catch (ThreadAbortException)
                 {
+                    Console.WriteLine("Aborted");
                 }
             }
             Console.WriteLine("Stopped");
@@ -73,8 +87,8 @@ namespace TCPListener
             int i;
             while(true)
             {
-                TcpClient client = listener.AcceptTcpClient();
-                NetworkStream stream = client.GetStream();
+                this.client = listener.AcceptTcpClient();
+                NetworkStream stream = this.client.GetStream();
 
                 while((i= stream.Read(buffer,0,buffer.Length))!= 0)
                 {
@@ -84,6 +98,7 @@ namespace TCPListener
                     byte[] msg = Encoding.UTF8.GetBytes("Test");
                     stream.Write(msg, 0, msg.Length);
                 }
+                client.Close();
             }
         }
 
