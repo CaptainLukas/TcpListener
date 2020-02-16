@@ -89,7 +89,7 @@ namespace TCPListener
             {
                 this.client = listener.AcceptTcpClient();
                 NetworkStream stream = this.client.GetStream();
-
+                Console.WriteLine("Connected");
                 while((i= stream.Read(buffer,0,buffer.Length))!= 0)
                 {
                     data = Encoding.UTF8.GetString(buffer, 0, i);
