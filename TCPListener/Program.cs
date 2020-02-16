@@ -10,8 +10,9 @@ namespace TCPListener
     {
         static void Main(string[] args)
         {
-            TcpListener listener = new TcpListener();
-            listener.
+            EnhancedTcpListener listener = new EnhancedTcpListener(45688);
+            listener.StartListening();
+
         }
     }
 }
