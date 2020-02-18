@@ -25,10 +25,15 @@ namespace TCPListener
             do
             {
                 key = Console.ReadKey(true).Key;
+                if (key == ConsoleKey.M)
+                {
+                    Console.WriteLine("Please Type Message");
+                    listener.sendMessage(Console.ReadLine());
+                }
             } while (key != ConsoleKey.Escape);
 
             listener.StopListening();
-            Console.ReadLine();
+            Console.ReadKey();
         }
 
         public void ReceivedMessageHandler(object sender, MessageReceivedEventHandler e)

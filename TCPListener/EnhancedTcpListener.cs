@@ -20,6 +20,7 @@ namespace TCPListener
 
         private TcpListener listener;
         private TcpClient client;
+        private NetworkStream stream;
 
         public int Port
         {
@@ -48,6 +49,8 @@ namespace TCPListener
             Console.WriteLine("Starting");
             this.listener = new TcpListener(IPAddress.Any,this.port);
             this.listener.Start();
+            this.client = listener.AcceptTcpClient();
+            this.stream = this.client.GetStream();
             worker = new Thread(new ThreadStart(Worker));
             worker.Start();
         }
@@ -56,7 +59,6 @@ namespace TCPListener
         {
             if (this.client != null)
             {
-                
                 this.client.Close();
             }
 
@@ -80,6 +82,12 @@ namespace TCPListener
             Console.WriteLine("Stopped");
         }
 
+        public void sendMessage(string message)
+        {
+            byte[] msg = Encoding.UTF8.GetBytes(message);
+            this.stream.Write(msg, 0, msg.Length);
+        }
+
         private void Worker()
         {
             Console.WriteLine("Worker started.");
@@ -87,18 +95,20 @@ namespace TCPListener
             int i;
             while(true)
             {
-                this.client = listener.AcceptTcpClient();
-                NetworkStream stream = this.client.GetStream();
                 Console.WriteLine("Connected");
-                while((i= stream.Read(buffer,0,buffer.Length))!= 0)
+                try
                 {
-                    data = Encoding.UTF8.GetString(buffer, 0, i);
-                    this.FireMessageReceivedEvent(data);
-
-                    byte[] msg = Encoding.UTF8.GetBytes("Test");
-                    stream.Write(msg, 0, msg.Length);
+                    while ((i = this.stream.Read(buffer, 0, buffer.Length)) != 0)
+                    {
+                        data = Encoding.UTF8.GetString(buffer, 0, i);
+                        this.FireMessageReceivedEvent(data);
+                    }
                 }
-                client.Close();
+                catch(Exception)
+                {
+                    Console.WriteLine("Connection closed");
+                    break;
+                }
             }
         }
 
