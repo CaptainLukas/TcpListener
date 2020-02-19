@@ -84,6 +84,7 @@ namespace TCPListener
 
         public void sendMessage(string message)
         {
+            message = ("CON4" + Encoding.UTF8.GetBytes(message).Length+"E" + message);
             byte[] msg = Encoding.UTF8.GetBytes(message);
             this.stream.Write(msg, 0, msg.Length);
         }
