@@ -44,6 +44,20 @@ namespace TCPListener
             this.buffer = new Byte[256];
         }
 
+        public void ConnectTo()
+        {
+            IPAddress ip = IPAddress.Parse("192.168.1.158");
+            this.client = new TcpClient();
+            this.client.Connect(new IPEndPoint(ip, 45688));
+            this.stream = client.GetStream();
+        }
+
+        public void Disconnect()
+        {
+            this.stream.Close();
+            this.client.Close();
+        }
+
         public void StartListening()
         {
             Console.WriteLine("Starting");
