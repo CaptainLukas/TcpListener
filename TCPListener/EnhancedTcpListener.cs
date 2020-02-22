@@ -44,9 +44,8 @@ namespace TCPListener
             this.buffer = new Byte[256];
         }
 
-        public void ConnectTo()
+        public void ConnectTo(IPAddress ip)
         {
-            IPAddress ip = IPAddress.Parse("192.168.1.158");
             this.client = new TcpClient();
             this.client.Connect(new IPEndPoint(ip, 45688));
             this.stream = client.GetStream();
@@ -54,8 +53,14 @@ namespace TCPListener
 
         public void Disconnect()
         {
-            this.stream.Close();
-            this.client.Close();
+            try
+            {
+                this.stream.Close();
+                this.client.Close();
+            }
+            catch(Exception)
+            {
+            }
         }
 
         public void StartListening()
@@ -98,9 +103,15 @@ namespace TCPListener
 
         public void sendMessage(string message)
         {
-            message = ("CON4" + Encoding.UTF8.GetBytes(message).Length+"E" + message);
-            byte[] msg = Encoding.UTF8.GetBytes(message);
-            this.stream.Write(msg, 0, msg.Length);
+            try
+            {
+                message = ("CON4" + Encoding.UTF8.GetBytes(message).Length + "E" + message);
+                byte[] msg = Encoding.UTF8.GetBytes(message);
+                this.stream.Write(msg, 0, msg.Length);
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void Worker()
@@ -110,7 +121,6 @@ namespace TCPListener
             int i;
             while(true)
             {
-                Console.WriteLine("Connected");
                 try
                 {
                     while ((i = this.stream.Read(buffer, 0, buffer.Length)) != 0)
@@ -125,6 +135,15 @@ namespace TCPListener
                     break;
                 }
             }
+        }
+
+        public string receiveMessage()
+        {
+            string message;
+            byte[] buffer;
+            this.stream.Read(buffer, 0, buffer.Length);
+            message = Encoding.UTF8.GetString(buffer, 0, data);
+            return message;
         }
 
         protected void FireMessageReceivedEvent(string message)
