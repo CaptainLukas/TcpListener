@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,32 +19,12 @@ namespace TCPListener
 
     class Control
     {
-        private EnhancedTcpListener listener;
+        private EnhancedStaticNetwork listener;
 
-        public void connectto()
+        public Control()
         {
-            EnhancedTcpListener listener = new EnhancedTcpListener(45688);
-            listener.ConnectTo();
-        }
-
-        public void getconnected()
-        {
-            EnhancedTcpListener listener = new EnhancedTcpListener(45688);
-            listener.StartListening();
-            listener.MessageReceived += ReceivedMessageHandler;
-            ConsoleKey key;
-            do
-            {
-                key = UserInput.getKey();
-                if (key == ConsoleKey.M)
-                {
-                    Console.WriteLine("Please Type Message");
-                    listener.sendMessage(Console.ReadLine());
-                }
-            } while (key != ConsoleKey.Escape);
-
-            listener.StopListening();
-            Console.ReadKey();
+            this.listener = new EnhancedStaticNetwork();
+            this.listener.MessageReceived += this.ReceivedMessageHandler;
         }
 
         public void handleFlow()
@@ -66,11 +47,12 @@ namespace TCPListener
 
                     case ConsoleKey.G:
                         //get connected
-
+                        listener.waitForConnection();
                         break;
 
                     case ConsoleKey.R:
                         //read message
+                        listener.receiveMessage();
                         break;
 
                     case ConsoleKey.S:

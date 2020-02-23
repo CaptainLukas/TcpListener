@@ -9,18 +9,16 @@ using System.Threading.Tasks;
 
 namespace TCPListener
 {
-    class EnhancedTcpListener
+    class EnhancedStaticNetwork
     {
         public event EventHandler<MessageReceivedEventHandler> MessageReceived;
 
-        private int port;
-
-        private Byte[] buffer;
-        private Thread worker;
+        private int port = 45688;
 
         private TcpListener listener;
         private TcpClient client;
         private NetworkStream stream;
+        private bool connected;
 
         public int Port
         {
@@ -38,71 +36,94 @@ namespace TCPListener
             }
         }
 
-        public EnhancedTcpListener(int port)
+        public EnhancedStaticNetwork()
         {
-            this.Port = port;
-            this.buffer = new Byte[256];
+            this.connected = false;
         }
 
         public void ConnectTo(IPAddress ip)
         {
-            this.client = new TcpClient();
-            this.client.Connect(new IPEndPoint(ip, 45688));
-            this.stream = client.GetStream();
+            if (this.connected)
+            {
+                Console.WriteLine("Already connected");
+                return;
+            }
+
+            try
+            {
+                this.client = new TcpClient();
+                this.client.Connect(new IPEndPoint(ip, this.Port));
+                this.stream = this.client.GetStream();
+                Console.WriteLine("Connected");
+                this.connected = true;
+            }
+            catch(Exception)
+            {
+                Console.WriteLine("Connection failed");
+                this.connected = false;
+            }
         }
 
         public void Disconnect()
         {
+            if (!this.connected)
+            {
+                Console.WriteLine("not connected");
+                return;
+            }
             try
             {
                 this.stream.Close();
+                Console.WriteLine("stream disconnected");
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("stream closing error");
+            }
+
+            try
+            {
                 this.client.Close();
+                Console.WriteLine("client disconnected");
             }
             catch(Exception)
             {
+                Console.WriteLine("client closing error");
             }
-        }
-
-        public void StartListening()
-        {
-            Console.WriteLine("Starting");
-            this.listener = new TcpListener(IPAddress.Any,this.port);
-            this.listener.Start();
-            this.client = listener.AcceptTcpClient();
-            this.stream = this.client.GetStream();
-            worker = new Thread(new ThreadStart(Worker));
-            worker.Start();
-        }
-
-        public void StopListening()
-        {
-            if (this.client != null)
-            {
-                this.client.Close();
-            }
-
-            if (this.listener != null)
+            try
             {
                 this.listener.Stop();
+                Console.WriteLine("listener stopped");
+            }
+            catch(Exception)
+            {
+                Console.WriteLine("listener stopping error");
+            }
+        }
+
+        public void waitForConnection()
+        {
+            if (this.connected)
+            {
+                Console.WriteLine("Already connected");
+                return;
             }
 
-            if (this.worker.IsAlive)
-            {
-                
-                try
-                {
-                    this.worker.Abort();
-                }
-                catch (ThreadAbortException)
-                {
-                    Console.WriteLine("Aborted");
-                }
-            }
-            Console.WriteLine("Stopped");
+            this.listener = new TcpListener(IPAddress.Any,this.Port);
+            this.listener.Start(1);
+            this.client = listener.AcceptTcpClient();
+            this.stream = this.client.GetStream();
+            Console.WriteLine("Connected");
+            this.connected = true;
         }
 
         public void sendMessage(string message)
         {
+            if (!this.connected)
+            {
+                Console.WriteLine("not connected");
+                return;
+            }
             try
             {
                 message = ("CON4" + Encoding.UTF8.GetBytes(message).Length + "E" + message);
@@ -114,31 +135,14 @@ namespace TCPListener
             }
         }
 
-        private void Worker()
+        public void receiveMessage()
         {
-            Console.WriteLine("Worker started.");
-            string data;
-            int i;
-            while(true)
+            if (!this.connected)
             {
-                try
-                {
-                    while ((i = this.stream.Read(buffer, 0, buffer.Length)) != 0)
-                    {
-                        data = Encoding.UTF8.GetString(buffer, 0, i);
-                        this.FireMessageReceivedEvent(data);
-                    }
-                }
-                catch(Exception)
-                {
-                    Console.WriteLine("Connection closed");
-                    break;
-                }
+                Console.WriteLine("not connected");
+                return;
             }
-        }
 
-        public string receiveMessage()
-        {
             string message;
             byte[] buffer=new byte[4];
             this.stream.Read(buffer, 0, buffer.Length);
@@ -157,6 +161,7 @@ namespace TCPListener
                 number += temp;
 
             } while (number != "E");
+
             Console.WriteLine("Number"+number);
             message += number + "E";
 
@@ -167,14 +172,14 @@ namespace TCPListener
 
             message += Encoding.UTF8.GetString(buffer);
 
-            return message;
+            this.FireMessageReceivedEvent(message);
         }
 
         protected void FireMessageReceivedEvent(string message)
         {
-            if (MessageReceived != null)
+            if (this.MessageReceived != null)
             {
-                this.MessageReceived.Invoke(this, new MessageReceivedEventHandler(message));
+                this.MessageReceived(this, new MessageReceivedEventHandler(message));
             }
         }
     }
