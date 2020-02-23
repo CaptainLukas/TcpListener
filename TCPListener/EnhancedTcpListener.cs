@@ -140,9 +140,33 @@ namespace TCPListener
         public string receiveMessage()
         {
             string message;
-            byte[] buffer;
+            byte[] buffer=new byte[4];
             this.stream.Read(buffer, 0, buffer.Length);
-            message = Encoding.UTF8.GetString(buffer, 0, data);
+            message = Encoding.UTF8.GetString(buffer);
+
+            buffer = new byte[1];
+            string number = "";
+            string temp = "";
+            do
+            {
+                this.stream.Read(buffer, 0, buffer.Length);
+                temp = Encoding.UTF8.GetString(buffer);
+                if (temp == "E")
+                    break;
+
+                number += temp;
+
+            } while (number != "E");
+            Console.WriteLine("Number"+number);
+            message += number + "E";
+
+            int num = Convert.ToInt32(number);
+            buffer = new byte[num];
+
+            this.stream.Read(buffer, 0, buffer.Length);
+
+            message += Encoding.UTF8.GetString(buffer);
+
             return message;
         }
 
