@@ -37,6 +37,7 @@ namespace TCPListener
                 {
                     case ConsoleKey.C:
                         //connectTo
+                        Console.Write("Enter ip address:");
                         listener.ConnectTo(UserInput.getIPAddress());
                         break;
 
@@ -60,7 +61,6 @@ namespace TCPListener
                         Console.WriteLine("Please enter message to send: ");
                         listener.sendMessage(UserInput.getInput());
                         break;
-
                     default:
                         Console.WriteLine("no action for this input");
                         break;

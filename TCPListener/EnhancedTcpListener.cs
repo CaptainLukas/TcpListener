@@ -99,6 +99,7 @@ namespace TCPListener
             {
                 Console.WriteLine("listener stopping error");
             }
+            this.connected = false;
         }
 
         public void waitForConnection()
@@ -126,7 +127,7 @@ namespace TCPListener
             }
             try
             {
-                message = ("CON4" + Encoding.UTF8.GetBytes(message).Length + "E" + message);
+                message = ("CON4" + (Encoding.UTF8.GetBytes(message)).Length + "E" + message);
                 byte[] msg = Encoding.UTF8.GetBytes(message);
                 this.stream.Write(msg, 0, msg.Length);
             }
