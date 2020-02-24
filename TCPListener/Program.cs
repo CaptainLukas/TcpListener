@@ -35,14 +35,24 @@ namespace TCPListener
             do
             {
                 this.ui.PrintLine("Please enter key to choose following options:", ConsoleColor.DarkGray);
-                this.ui.PrintLine("\"c\": connect to other\n\"d\": disconnect current connection\n\"g\": wait for connection\n\"r\": receive a message\n\"s\": send a message");
+                this.ui.PrintLine("\"c\": connect to other\n\"d\": disconnect current connection\n\"g\": wait for connection\n\"p\": change port\n\"r\": receive a message\n\"s\": send a message\n\"Esc\": exit");
                 key = UserInput.getKey(true);
                 switch (key)
                 {
                     case ConsoleKey.C:
                         //connectTo
-                        this.ui.Print("Enter ip address:");
-                        listener.ConnectTo(UserInput.getIPAddress());
+                        IPAddress ip;
+                        try
+                        {
+                            this.ui.Print("Enter ip address:");
+                            ip = UserInput.getIPAddress();
+                        }
+                        catch(Exception)
+                        {
+                            this.ui.PrintError("invalid ip address");
+                            break;
+                        }
+                        listener.ConnectTo(ip);
                         break;
 
                     case ConsoleKey.D:
@@ -54,7 +64,10 @@ namespace TCPListener
                         //get connected
                         listener.waitForConnection();
                         break;
-
+                    case ConsoleKey.P:
+                        //change port
+                        this.ChangePort();
+                        break;
                     case ConsoleKey.R:
                         //read message
                         listener.receiveMessage();
@@ -62,12 +75,13 @@ namespace TCPListener
 
                     case ConsoleKey.S:
                         //send message
+                        if(!this.listener.Connected)
+                        {
+                            this.ui.PrintError("not connected");
+                            break;
+                        }
                         this.ui.Print("Please enter message to send: ");
                         listener.sendMessage(UserInput.getInput());
-                        break;
-                    case ConsoleKey.P:
-                        //change port
-                        this.ChangePort();
                         break;
                     case ConsoleKey.Escape:
                         listener.SilentDisconnect();
@@ -111,7 +125,7 @@ namespace TCPListener
                 this.listener.Port = port;
                 this.ui.PrintLine("Port is set to: " + this.listener.Port);
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 this.ui.PrintError("Port out of range");
             }

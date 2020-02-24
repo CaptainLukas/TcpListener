@@ -27,22 +27,16 @@ namespace TCPListener
         public static IPAddress getIPAddress()
         {
             IPAddress ip = null;
-            bool valid = false;
-            do
+            try
             {
-                try
-                {
-                    string ipstring = Console.ReadLine();
+                string ipstring = Console.ReadLine();
 
-                    ip = IPAddress.Parse(ipstring);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine("not a valid address");
-                    continue;
-                }
-                valid = true;
-            } while(!valid);
+                ip = IPAddress.Parse(ipstring);
+            }
+            catch (Exception)
+            {
+                throw new ArgumentException("not a valid address");
+            }
             return ip;
         }
     }

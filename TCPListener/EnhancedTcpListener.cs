@@ -17,12 +17,17 @@ namespace TCPListener
 
         public event EventHandler<LogMessageEventHandler> LogMessage;
 
-        private int port = 45688;
+        private int port;
 
         private TcpListener listener;
         private TcpClient client;
         private NetworkStream stream;
-        private bool connected;
+
+        public bool Connected
+        {
+            get;
+            private set;
+        }
 
         public int Port
         {
@@ -45,12 +50,13 @@ namespace TCPListener
 
         public EnhancedStaticNetwork()
         {
-            this.connected = false;
+            this.Connected = false;
+            this.port = 45688;
         }
 
         public void ConnectTo(IPAddress ip)
         {
-            if (this.connected)
+            if (this.Connected)
             {
                 this.FireErrorOccuredEvent("Already connected");
                 return;
@@ -58,22 +64,23 @@ namespace TCPListener
 
             try
             {
+                this.FireLogMessageEvent("Connecting");
                 this.client = new TcpClient();
                 this.client.Connect(new IPEndPoint(ip, this.Port));
                 this.stream = this.client.GetStream();
                 this.FireLogMessageEvent("Connected");
-                this.connected = true;
+                this.Connected = true;
             }
             catch(Exception)
             {
                 this.FireErrorOccuredEvent("Connection failed");
-                this.connected = false;
+                this.Connected = false;
             }
         }
 
         public void Disconnect()
         {
-            if (!this.connected)
+            if (!this.Connected)
             {
                 this.FireErrorOccuredEvent("not connected");
                 return;
@@ -106,11 +113,11 @@ namespace TCPListener
             {
                 this.FireErrorOccuredEvent("listener stopping error");
             }
-            this.connected = false;
+            this.Connected = false;
         }
         public void SilentDisconnect()
         {
-            if (!this.connected)
+            if (!this.Connected)
             {
                 return;
             }
@@ -139,12 +146,12 @@ namespace TCPListener
             {
                 this.FireErrorOccuredEvent("listener stopping error");
             }
-            this.connected = false;
+            this.Connected = false;
         }
 
         public void waitForConnection()
         {
-            if (this.connected)
+            if (this.Connected)
             {
                 this.FireErrorOccuredEvent("Already connected");
                 return;
@@ -155,12 +162,12 @@ namespace TCPListener
             this.client = listener.AcceptTcpClient();
             this.stream = this.client.GetStream();
             this.FireLogMessageEvent("Connected");
-            this.connected = true;
+            this.Connected = true;
         }
 
         public void sendMessage(string message)
         {
-            if (!this.connected)
+            if (!this.Connected)
             {
                 this.FireErrorOccuredEvent("not connected");
                 return;
@@ -178,7 +185,7 @@ namespace TCPListener
 
         public void receiveMessage()
         {
-            if (!this.connected)
+            if (!this.Connected)
             {
                 this.FireErrorOccuredEvent("not connected");
                 return;
