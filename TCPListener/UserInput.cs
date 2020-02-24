@@ -9,9 +9,9 @@ namespace TCPListener
 {
     public class UserInput
     {
-        public static ConsoleKey getKey()
+        public static ConsoleKey getKey(bool showkey)
         {
-            ConsoleKey key = Console.ReadKey().Key;
+            ConsoleKey key = Console.ReadKey(showkey).Key;
             return key;
         }
 
