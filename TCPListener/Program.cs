@@ -32,7 +32,7 @@ namespace TCPListener
             ConsoleKey key;
             do
             {
-                key = UserInput.getKey();
+                key = UserInput.getKey(true);
                 switch (key)
                 {
                     case ConsoleKey.C:
