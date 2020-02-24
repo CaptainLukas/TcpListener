@@ -84,14 +84,22 @@ namespace TCPListener
 
         private void ChangePort()
         {
-            this.ui.PrintLine("the current port is " + this.listener.Port);
+            this.ui.Print("the current port is ");
+            this.ui.PrintLine(this.listener.Port.ToString(), ConsoleColor.White);
+            this.ui.PrintLine("if you want to keep it, input \"k\"");
 
             int port;
             bool valid = false;
             do
             {
                 this.ui.Print("please enter new port: ");
-                valid = Int32.TryParse(UserInput.getInput(), out port);
+                string input = UserInput.getInput();
+                if (input == "k")
+                {
+                    this.ui.PrintLine("port stays the same");
+                    return;
+                }
+                valid = Int32.TryParse(input, out port);
                 if (!valid)
                 {
                     this.ui.PrintError("invalid input");
