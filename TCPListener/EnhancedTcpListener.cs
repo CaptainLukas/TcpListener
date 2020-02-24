@@ -13,7 +13,11 @@ namespace TCPListener
     {
         public event EventHandler<MessageReceivedEventHandler> MessageReceived;
 
-        private int port = 45688;
+        public event EventHandler<ErrorOccuredEventHandler> ErrorOccured;
+
+        public event EventHandler<LogMessageEventHandler> LogMessage;
+
+        private int port = 80;
 
         private TcpListener listener;
         private TcpClient client;
@@ -30,7 +34,7 @@ namespace TCPListener
             {
                 if (value <= 0 || value > 65535)
                 {
-                    throw new IndexOutOfRangeException("port is out of range");
+                    this.FireErrorOccuredEvent("port is out of range");
                 }
                 this.port = value;
             }
@@ -45,7 +49,7 @@ namespace TCPListener
         {
             if (this.connected)
             {
-                Console.WriteLine("Already connected");
+                this.FireErrorOccuredEvent("Already connected");
                 return;
             }
 
@@ -54,12 +58,12 @@ namespace TCPListener
                 this.client = new TcpClient();
                 this.client.Connect(new IPEndPoint(ip, this.Port));
                 this.stream = this.client.GetStream();
-                Console.WriteLine("Connected");
+                this.FireLogMessageEvent("Connected");
                 this.connected = true;
             }
             catch(Exception)
             {
-                Console.WriteLine("Connection failed");
+                this.FireErrorOccuredEvent("Connection failed");
                 this.connected = false;
             }
         }
@@ -68,36 +72,36 @@ namespace TCPListener
         {
             if (!this.connected)
             {
-                Console.WriteLine("not connected");
+                this.FireErrorOccuredEvent("not connected");
                 return;
             }
             try
             {
                 this.stream.Close();
-                Console.WriteLine("stream disconnected");
+                this.FireLogMessageEvent("stream disconnected");
             }
             catch (Exception)
             {
-                Console.WriteLine("stream closing error");
+                this.FireErrorOccuredEvent("stream closing error");
             }
 
             try
             {
                 this.client.Close();
-                Console.WriteLine("client disconnected");
+                this.FireLogMessageEvent("client disconnected");
             }
             catch(Exception)
             {
-                Console.WriteLine("client closing error");
+                this.FireErrorOccuredEvent("client closing error");
             }
             try
             {
                 this.listener.Stop();
-                Console.WriteLine("listener stopped");
+                this.FireLogMessageEvent("listener stopped");
             }
             catch(Exception)
             {
-                Console.WriteLine("listener stopping error");
+                this.FireErrorOccuredEvent("listener stopping error");
             }
             this.connected = false;
         }
@@ -106,15 +110,15 @@ namespace TCPListener
         {
             if (this.connected)
             {
-                Console.WriteLine("Already connected");
+                this.FireErrorOccuredEvent("Already connected");
                 return;
             }
-
+            this.FireLogMessageEvent("Waiting for connection...");
             this.listener = new TcpListener(IPAddress.Any,this.Port);
             this.listener.Start(1);
             this.client = listener.AcceptTcpClient();
             this.stream = this.client.GetStream();
-            Console.WriteLine("Connected");
+            this.FireLogMessageEvent("Connected");
             this.connected = true;
         }
 
@@ -122,7 +126,7 @@ namespace TCPListener
         {
             if (!this.connected)
             {
-                Console.WriteLine("not connected");
+                this.FireErrorOccuredEvent("not connected");
                 return;
             }
             try
@@ -140,10 +144,10 @@ namespace TCPListener
         {
             if (!this.connected)
             {
-                Console.WriteLine("not connected");
+                this.FireErrorOccuredEvent("not connected");
                 return;
             }
-
+            this.FireLogMessageEvent("Waiting for incoming message");
             string message;
             byte[] buffer=new byte[4];
             this.stream.Read(buffer, 0, buffer.Length);
@@ -163,7 +167,7 @@ namespace TCPListener
 
             } while (number != "E");
 
-            Console.WriteLine("Number"+number);
+            this.FireLogMessageEvent("Number"+number);
             message += number + "E";
 
             int num = Convert.ToInt32(number);
@@ -181,6 +185,22 @@ namespace TCPListener
             if (this.MessageReceived != null)
             {
                 this.MessageReceived(this, new MessageReceivedEventHandler(message));
+            }
+        }
+
+        protected void FireErrorOccuredEvent(string error)
+        {
+            if (this.ErrorOccured != null)
+            {
+                this.ErrorOccured(this, new ErrorOccuredEventHandler(error));
+            }
+        }
+
+        protected void FireLogMessageEvent(string message)
+        {
+            if (this.LogMessage != null)
+            {
+                this.LogMessage(this, new LogMessageEventHandler(message));
             }
         }
     }

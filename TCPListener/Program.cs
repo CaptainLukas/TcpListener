@@ -20,11 +20,13 @@ namespace TCPListener
     class Control
     {
         private EnhancedStaticNetwork listener;
+        private UserInterface ui;
 
         public Control()
         {
             this.listener = new EnhancedStaticNetwork();
             this.listener.MessageReceived += this.ReceivedMessageHandler;
+            this.ui = new UserInterface();
         }
 
         public void handleFlow()
@@ -32,12 +34,14 @@ namespace TCPListener
             ConsoleKey key;
             do
             {
+                this.ui.PrintLine("Please enter key to choose following options:");
+                this.ui.PrintLine("\"c\": connect to other\n\"d\": disconnect current connection\n\"g\": wait for connection\n\"r\": receive a message\n\"s\": send a message");
                 key = UserInput.getKey(true);
                 switch (key)
                 {
                     case ConsoleKey.C:
                         //connectTo
-                        Console.Write("Enter ip address:");
+                        this.ui.Print("Enter ip address:");
                         listener.ConnectTo(UserInput.getIPAddress());
                         break;
 
@@ -58,20 +62,35 @@ namespace TCPListener
 
                     case ConsoleKey.S:
                         //send message
-                        Console.WriteLine("Please enter message to send: ");
+                        this.ui.Print("Please enter message to send: ");
                         listener.sendMessage(UserInput.getInput());
                         break;
+                    case ConsoleKey.Escape:
+                        listener.Disconnect();
+                        break;
                     default:
-                        Console.WriteLine("no action for this input");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        this.ui.PrintLine("no action for this input");
+                        Console.ForegroundColor = ConsoleColor.Gray;
                         break;
                 }
 
             } while (key != ConsoleKey.Escape);
         }
 
+        public void LogMessage(object sender, LogMessageEventHandler e)
+        {
+            this.ui.PrintLine(e.Message);
+        }
+
+        public void ErrorOccuredHandler(object sender, ErrorOccuredEventHandler e)
+        {
+            this.ui.PrintError(e.Error);
+        }
+
         public void ReceivedMessageHandler(object sender, MessageReceivedEventHandler e)
         {
-            Console.WriteLine(e.Message);
+            this.ui.PrintLine(e.Message,ConsoleColor.Cyan);
         }
     }
 }
