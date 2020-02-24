@@ -71,8 +71,9 @@ namespace TCPListener
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.BackgroundColor = ConsoleColor.White;
-            Console.Write("Error occured: ");
+            Console.Write("Error occured:");
             Console.BackgroundColor = this.BackGround;
+            Console.Write(" ");
             Console.WriteLine(error);
             Console.ForegroundColor = this.ForeGround;
         }

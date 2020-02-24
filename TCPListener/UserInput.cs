@@ -9,16 +9,18 @@ namespace TCPListener
 {
     public class UserInput
     {
-        public static ConsoleKey getKey(bool showkey)
+        public static ConsoleKey getKey(bool hidekey)
         {
-            ConsoleKey key = Console.ReadKey(showkey).Key;
+            ConsoleKey key = Console.ReadKey(hidekey).Key;
             return key;
         }
 
         public static string getInput()
         {
             string input;
+            Console.CursorVisible = true;
             input = Console.ReadLine();
+            Console.CursorVisible = false;
             return input;
         }
 

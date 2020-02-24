@@ -17,7 +17,7 @@ namespace TCPListener
 
         public event EventHandler<LogMessageEventHandler> LogMessage;
 
-        private int port = 80;
+        private int port = 45688;
 
         private TcpListener listener;
         private TcpClient client;
@@ -34,9 +34,12 @@ namespace TCPListener
             {
                 if (value <= 0 || value > 65535)
                 {
-                    this.FireErrorOccuredEvent("port is out of range");
+                    throw new ArgumentOutOfRangeException("port is out of range");
                 }
-                this.port = value;
+                else
+                {
+                    this.port = value;
+                }
             }
         }
 
@@ -105,6 +108,39 @@ namespace TCPListener
             }
             this.connected = false;
         }
+        public void SilentDisconnect()
+        {
+            if (!this.connected)
+            {
+                return;
+            }
+            try
+            {
+                this.stream.Close();
+            }
+            catch (Exception)
+            {
+                this.FireErrorOccuredEvent("stream closing error");
+            }
+
+            try
+            {
+                this.client.Close();
+            }
+            catch (Exception)
+            {
+                this.FireErrorOccuredEvent("client closing error");
+            }
+            try
+            {
+                this.listener.Stop();
+            }
+            catch (Exception)
+            {
+                this.FireErrorOccuredEvent("listener stopping error");
+            }
+            this.connected = false;
+        }
 
         public void waitForConnection()
         {
@@ -166,8 +202,7 @@ namespace TCPListener
                 number += temp;
 
             } while (number != "E");
-
-            this.FireLogMessageEvent("Number"+number);
+            
             message += number + "E";
 
             int num = Convert.ToInt32(number);
